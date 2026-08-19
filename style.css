@@ -1,42 +1,166 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #222;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+:root {
+    --bg-dark: #1a1a2e;
+    --bg-panel: #16213e;
+    --neon-cyan: #08f7fe;
+    --neon-pink: #ff2e93;
+    --neon-yellow: #f5d300;
+    --neon-green: #00ff66;
+    --text-soft: #dce8ff;
 }
 
-.container {
-    position: relative;
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    padding: 18px;
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle, #253058 2px, transparent 2px);
+    background-size: 22px 22px;
+    color: white;
+}
+
+main {
+    width: min(100%, 760px);
+    margin: 0 auto;
+}
+
+.hero { text-align: center; }
+
+.mission-badge {
     display: inline-block;
+    padding: 6px 14px;
+    color: var(--bg-dark);
+    background: var(--neon-yellow);
+    border-radius: 999px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    box-shadow: 0 0 14px rgba(245, 211, 0, .55);
+}
+
+h1 {
+    margin: 12px 0 2px;
+    color: var(--neon-cyan);
+    font-size: clamp(1.8rem, 7vw, 2.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    text-shadow: 0 0 16px rgba(8, 247, 254, .8);
+}
+
+.hero p {
+    margin: 0 0 18px;
+    color: var(--neon-pink);
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(255, 46, 147, .6);
+}
+
+.camera-card {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 220px;
+    background: #000;
+    border: 4px solid var(--neon-cyan);
+    border-radius: 22px;
+    box-shadow: 0 0 28px rgba(8, 247, 254, .45);
 }
 
 #camera-stream {
-    display: none; /* Ocultamos el video crudo, mostraremos el canvas */
+    display: none;
 }
 
 #output-canvas {
-    background-color: #000;
-    max-width: 100%;
-    border: 2px solid #555;
-    border-radius: 8px;
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #000;
+}
+
+.camera-status,
+.camera-hint {
+    position: absolute;
+    z-index: 2;
+    left: 14px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(10, 13, 31, .78);
+    backdrop-filter: blur(5px);
+    font-weight: 900;
+}
+
+.camera-status { top: 12px; font-size: .78rem; }
+.camera-hint { bottom: 12px; color: var(--text-soft); font-size: .82rem; }
+.camera-hint strong { color: var(--neon-yellow); }
+
+.status-light {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 5px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    box-shadow: 0 0 9px var(--neon-green);
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    margin: 22px 0;
+}
+
+button {
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 999px;
+    color: white;
+    background: var(--neon-pink);
+    box-shadow: 0 6px 0 #b81767, 0 0 16px rgba(255, 46, 147, .6);
+    font: 900 1rem 'Nunito', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+}
+
+button:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 12px rgba(255, 46, 147, .7);
 }
 
 #info-panel {
-    margin-top: 20px;
-    width: 100%;
-    max-width: 640px;
-    background: #333;
-    padding: 15px;
-    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.info-card {
+    min-width: 0;
+    padding: 16px;
+    background: rgba(22, 33, 62, .94);
+    border: 2px solid #34446f;
+    border-radius: 16px;
+}
+
+.tag-card { border-color: var(--neon-green); box-shadow: 0 0 14px rgba(0, 255, 102, .18); }
+
+h2 {
+    margin: 0 0 8px;
+    color: var(--neon-cyan);
+    font-size: 1rem;
+    text-transform: uppercase;
 }
 
 pre {
-    background: #111;
-    padding: 10px;
-    border-radius: 4px;
+    margin: 0;
+    color: var(--text-soft);
+    font: 700 .82rem 'Nunito', sans-serif;
+    white-space: pre-wrap;
     overflow-x: auto;
+}
+
+@media (max-width: 620px) {
+    body { padding: 12px; }
+    #info-panel { grid-template-columns: 1fr; }
+    .camera-data-card { display: none; }
 }

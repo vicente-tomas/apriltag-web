@@ -3,16 +3,20 @@ const canvas = document.getElementById('output-canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 const cameraDataEl = document.getElementById('camera-data');
 const tagDataEl = document.getElementById('tag-data');
+const clearTrailButton = document.getElementById('clear-trail');
 
 // Especificaciones solicitadas
 const TARGET_ID = 0;
 const LOST_AFTER_MS = 600; // 0.6 segundos en milisegundos
+const MAX_TRAIL_POINTS = 450;
+const MIN_TRAIL_DISTANCE = 3;
 
 let tagTracker = {}; 
 let cameraInfo = {};
 let detectorReady = false;
 let apriltagDetector = null;
 let detectionInProgress = false;
+let trailPoints = [];
 
 // 1. INICIALIZAR EL DETECTOR WEBASSEMBLY EN UN WEB WORKER
 async function startDetector() {
@@ -90,7 +94,9 @@ async function processFrame() {
         try {
             // El detector asume por defecto la familia tag36h11
             const tags = await apriltagDetector.detect(grayscale, width, height);
-            handleDetections(tags);
+            const targetTag = handleDetections(tags);
+            drawTrail();
+            if (targetTag) drawTag(targetTag);
         } catch (e) {
             console.error("Fallo leyendo el tag:", e);
             tagDataEl.innerText = `Error del detector: ${e.message || e}`;
@@ -105,16 +111,63 @@ async function processFrame() {
 
 function handleDetections(tags) {
     const now = Date.now();
+    let targetTag = null;
 
     tags.forEach(tag => {
         // Filtramos por el Robot Tag ID 0
         if (tag.id === TARGET_ID) {
             tagTracker[TARGET_ID] = now;
-            
-            drawTag(tag);
-            tagDataEl.innerText = `Estado: Detectado\nÚltima vez visto: Ahora mismo\nCentro: x=${tag.center.x.toFixed(1)}, y=${tag.center.y.toFixed(1)}`;
+            targetTag = tag;
+            addTrailPoint(tag.center.x, tag.center.y);
+            tagDataEl.innerText = `🟢 ¡Robot detectado!\nRuta: ${trailPoints.length} puntos\nCentro: x=${tag.center.x.toFixed(1)}, y=${tag.center.y.toFixed(1)}`;
         }
     });
+
+    return targetTag;
+}
+
+function addTrailPoint(x, y) {
+    const lastPoint = trailPoints[trailPoints.length - 1];
+    if (lastPoint && Math.hypot(x - lastPoint.x, y - lastPoint.y) < MIN_TRAIL_DISTANCE) return;
+
+    trailPoints.push({ x, y });
+    if (trailPoints.length > MAX_TRAIL_POINTS) trailPoints.shift();
+}
+
+function drawTrail() {
+    if (trailPoints.length === 0) return;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#00ff66';
+    ctx.lineWidth = 6;
+    ctx.shadowColor = '#00ff66';
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(trailPoints[0].x, trailPoints[0].y);
+    trailPoints.slice(1).forEach(point => ctx.lineTo(point.x, point.y));
+    ctx.stroke();
+
+    trailPoints.forEach((point, index) => {
+        if (index % 16 !== 0) return;
+        drawStar(point.x, point.y, 7);
+    });
+    ctx.restore();
+}
+
+function drawStar(x, y, radius) {
+    ctx.fillStyle = '#f5d300';
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+        const angle = -Math.PI / 2 + i * Math.PI / 5;
+        const pointRadius = i % 2 === 0 ? radius : radius * 0.42;
+        const px = x + Math.cos(angle) * pointRadius;
+        const py = y + Math.sin(angle) * pointRadius;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
 }
 
 function checkLostTags() {
@@ -123,10 +176,16 @@ function checkLostTags() {
         const timeSinceLastSeen = now - tagTracker[TARGET_ID];
         
         if (timeSinceLastSeen > LOST_AFTER_MS) {
-            tagDataEl.innerText = `Estado: Perdido (Pasaron más de 0.6s)\nTiempo ausente: ${(timeSinceLastSeen / 1000).toFixed(2)}s`;
+            tagDataEl.innerText = `🟡 Buscando el robot...\nAcerca el AprilTag ID 0 a la cámara.\nRuta guardada: ${trailPoints.length} puntos`;
         }
     }
 }
+
+clearTrailButton.addEventListener('click', () => {
+    trailPoints = [];
+    tagTracker = {};
+    tagDataEl.innerText = '✨ ¡Ruta limpia! Mueve el robot para comenzar.';
+});
 
 function drawTag(tag) {
     ctx.beginPath();

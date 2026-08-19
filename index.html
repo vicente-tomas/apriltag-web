@@ -3,21 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AprilTag 36h11 Detector</title>
+    <title>Misión SoftRobot 🚀</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <video id="camera-stream" autoplay playsinline muted></video>
-        <canvas id="output-canvas"></canvas>
-    </div>
-    
-    <div id="info-panel">
-        <h3>Datos de la Cámara</h3>
-        <pre id="camera-data">Cargando...</pre>
-        <h3>Tags Detectados (ID: 0)</h3>
-        <pre id="tag-data">Buscando...</pre>
-    </div>
+    <main>
+        <header class="hero">
+            <span class="mission-badge">MISIÓN 01</span>
+            <h1>Centro de Mando 🤖</h1>
+            <p>¡Mueve tu robot y dibuja una ruta con el AprilTag!</p>
+        </header>
+
+        <section class="camera-card" aria-label="Cámara y recorrido del robot">
+            <div class="camera-status"><span class="status-light"></span> CÁMARA EN VIVO</div>
+            <video id="camera-stream" autoplay playsinline muted></video>
+            <canvas id="output-canvas"></canvas>
+            <div class="camera-hint">Busca el marcador <strong>36h11 · ID 0</strong></div>
+        </section>
+
+        <div class="controls">
+            <button id="clear-trail" type="button">Limpiar ruta 🧹</button>
+        </div>
+
+        <section id="info-panel" aria-live="polite">
+            <article class="info-card tag-card">
+                <h2>Estado del robot</h2>
+                <pre id="tag-data">Preparando detector...</pre>
+            </article>
+            <article class="info-card camera-data-card">
+                <h2>Datos de la cámara</h2>
+                <pre id="camera-data">Solicitando permiso...</pre>
+            </article>
+        </section>
+    </main>
     <script src="https://unpkg.com/comlink/dist/umd/comlink.js"></script>
     <script src="app.js"></script>
 </body>
