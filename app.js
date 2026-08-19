@@ -23,7 +23,7 @@ let trailPoints = [];
 // 1. INICIALIZAR EL DETECTOR WEBASSEMBLY EN UN WEB WORKER
 async function startDetector() {
     try {
-        const Apriltag = Comlink.wrap(new Worker("apriltag.js"));
+        const Apriltag = Comlink.wrap(new Worker("apriltag.js?v=20260819-2"));
         apriltagDetector = await new Apriltag(Comlink.proxy(() => {
             detectorReady = true;
             console.log("Motor AprilTag WASM cargado y listo.");
