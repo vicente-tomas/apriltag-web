@@ -5,33 +5,39 @@ const cameraDataEl = document.getElementById('camera-data');
 const tagDataEl = document.getElementById('tag-data');
 
 // Especificaciones solicitadas
-const TARGET_FAMILY = "tag36h11";
 const TARGET_ID = 0;
 const LOST_AFTER_MS = 600; // 0.6 segundos en milisegundos
 
-let tagTracker = {}; // Para rastrear cuándo fue la última vez que vimos el tag
+let tagTracker = {}; 
 let cameraInfo = {};
+let detectorReady = false;
+let apriltagDetector = null;
+
+// 1. INICIALIZAR EL DETECTOR WEBASSEMBLY
+Apriltag((detector) => {
+    apriltagDetector = detector;
+    detectorReady = true;
+    console.log("Motor AprilTag WASM cargado y listo.");
+});
 
 // Inicializar la cámara
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: "environment", // Usar cámara trasera en móviles
+                facingMode: "environment", // Usar cámara trasera
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
             }
         });
         video.srcObject = stream;
 
-        // Esperar a que el video empiece a reproducirse para obtener dimensiones reales
         video.onloadedmetadata = () => {
             video.play();
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             extractCameraData(stream.getVideoTracks()[0]);
             
-            // Iniciar el ciclo de detección una vez que la cámara esté lista
             requestAnimationFrame(processFrame);
         };
     } catch (err) {
@@ -40,81 +46,59 @@ async function startCamera() {
     }
 }
 
-// Extraer configuración de la cámara y estimar intrínsecos
 function extractCameraData(track) {
     const settings = track.getSettings();
-    
-    // Extraemos lo que la API nos da
     const width = settings.width || video.videoWidth;
     const height = settings.height || video.videoHeight;
     const fps = settings.frameRate || 30;
 
-    // Estimamos los parámetros intrínsecos
     const cx = width / 2.0;
     const cy = height / 2.0;
-    // Estimación estándar de focal length (fx, fy) asumiendo un FOV común
     const fx = width * 0.8; 
     const fy = fx; 
 
-    cameraInfo = {
-        index: 0,
-        width: width,
-        height: height,
-        fps: fps,
-        cx: cx,
-        cy: cy,
-        fx: fx,
-        fy: fy
-    };
-
+    cameraInfo = { index: 0, width, height, fps, cx, cy, fx, fy };
     cameraDataEl.innerText = JSON.stringify(cameraInfo, null, 2);
 }
 
-// Bucle principal de procesamiento de imágenes
-async function processFrame() {
-    // 1. Dibujar el fotograma actual en el canvas
+// Bucle principal
+function processFrame() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // 2. Extraer datos de la imagen (escala de grises) para AprilTag
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Asegurarse de que la librería AprilTag esté cargada
-    if (typeof AprilTag !== 'undefined') {
-        // En un entorno real de producción, instanciarías el detector Wasm aquí.
-        // Como las APIs de los wrappers JS varían, aquí se simula el llamado estándar:
+    // Solo intentamos detectar si el motor ya se descargó y activó
+    if (detectorReady && apriltagDetector) {
+        const width = canvas.width;
+        const height = canvas.height;
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        
+        // Convertir la imagen a blanco y negro (Requisito del detector en C)
+        const grayscale = new Uint8Array(width * height);
+        for (let i = 0; i < grayscale.length; i++) {
+            grayscale[i] = (data[i * 4] * 0.299 + data[i * 4 + 1] * 0.587 + data[i * 4 + 2] * 0.114);
+        }
         
         try {
-            // Asumiendo inicialización de detector de la librería unpkg
-            // (Revisa la documentación específica del wrapper Wasm si usas otro)
-            const tags = await AprilTag.detect(imageData, {
-                family: TARGET_FAMILY
-            });
-
+            // El detector asume por defecto la familia tag36h11
+            const tags = apriltagDetector.detect(grayscale, width, height);
             handleDetections(tags);
         } catch (e) {
-            // Ignorar errores de frame único
+            console.error("Fallo leyendo el tag:", e);
         }
     }
 
-    // 3. Revisar si perdimos el tag de vista (más de 0.6s)
     checkLostTags();
-
-    // 4. Pedir el siguiente fotograma
     requestAnimationFrame(processFrame);
 }
 
 function handleDetections(tags) {
     const now = Date.now();
-    let foundTarget = false;
 
     tags.forEach(tag => {
-        // Solo nos interesa el ID 0 de la familia 36h11
+        // Filtramos por el Robot Tag ID 0
         if (tag.id === TARGET_ID) {
-            foundTarget = true;
-            // Actualizamos la última vez que lo vimos
             tagTracker[TARGET_ID] = now;
             
-            // Dibujar un cuadro verde alrededor del tag
             drawTag(tag);
             tagDataEl.innerText = `Estado: Detectado\nÚltima vez visto: Ahora mismo\nCentro: x=${tag.center.x.toFixed(1)}, y=${tag.center.y.toFixed(1)}`;
         }
@@ -132,7 +116,6 @@ function checkLostTags() {
     }
 }
 
-// Función auxiliar para dibujar un recuadro alrededor del Tag detectado
 function drawTag(tag) {
     ctx.beginPath();
     ctx.lineWidth = 4;
@@ -144,7 +127,6 @@ function drawTag(tag) {
     ctx.closePath();
     ctx.stroke();
 
-    // Dibujar el ID en el centro
     ctx.fillStyle = "lime";
     ctx.font = "24px Arial";
     ctx.fillText(`ID: ${tag.id}`, tag.center.x - 20, tag.center.y);
