@@ -12,13 +12,21 @@ let tagTracker = {};
 let cameraInfo = {};
 let detectorReady = false;
 let apriltagDetector = null;
+let detectionInProgress = false;
 
-// 1. INICIALIZAR EL DETECTOR WEBASSEMBLY
-Apriltag((detector) => {
-    apriltagDetector = detector;
-    detectorReady = true;
-    console.log("Motor AprilTag WASM cargado y listo.");
-});
+// 1. INICIALIZAR EL DETECTOR WEBASSEMBLY EN UN WEB WORKER
+async function startDetector() {
+    try {
+        const Apriltag = Comlink.wrap(new Worker("apriltag.js"));
+        apriltagDetector = await new Apriltag(Comlink.proxy(() => {
+            detectorReady = true;
+            console.log("Motor AprilTag WASM cargado y listo.");
+        }));
+    } catch (err) {
+        console.error("No se pudo iniciar el detector:", err);
+        tagDataEl.innerText = `Error al iniciar el detector: ${err.message || err}`;
+    }
+}
 
 // Inicializar la cámara
 async function startCamera() {
@@ -62,11 +70,12 @@ function extractCameraData(track) {
 }
 
 // Bucle principal
-function processFrame() {
+async function processFrame() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Solo intentamos detectar si el motor ya se descargó y activó
-    if (detectorReady && apriltagDetector) {
+    if (detectorReady && apriltagDetector && !detectionInProgress) {
+        detectionInProgress = true;
         const width = canvas.width;
         const height = canvas.height;
         const imageData = ctx.getImageData(0, 0, width, height);
@@ -80,10 +89,13 @@ function processFrame() {
         
         try {
             // El detector asume por defecto la familia tag36h11
-            const tags = apriltagDetector.detect(grayscale, width, height);
+            const tags = await apriltagDetector.detect(grayscale, width, height);
             handleDetections(tags);
         } catch (e) {
             console.error("Fallo leyendo el tag:", e);
+            tagDataEl.innerText = `Error del detector: ${e.message || e}`;
+        } finally {
+            detectionInProgress = false;
         }
     }
 
@@ -133,4 +145,5 @@ function drawTag(tag) {
 }
 
 // Iniciar todo
+startDetector();
 startCamera();
