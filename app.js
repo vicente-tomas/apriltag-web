@@ -1,6 +1,8 @@
 const video = document.getElementById('camera-stream');
 const canvas = document.getElementById('output-canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const trailCanvas = document.getElementById('trail-canvas');
+const trailCtx = trailCanvas.getContext('2d');
 const cameraDataEl = document.getElementById('camera-data');
 const tagDataEl = document.getElementById('tag-data');
 const clearTrailButton = document.getElementById('clear-trail');
@@ -48,6 +50,8 @@ async function startCamera() {
             video.play();
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            trailCanvas.width = video.videoWidth;
+            trailCanvas.height = video.videoHeight;
             extractCameraData(stream.getVideoTracks()[0]);
             
             requestAnimationFrame(processFrame);
@@ -137,37 +141,38 @@ function addTrailPoint(x, y) {
 function drawTrail() {
     if (trailPoints.length === 0) return;
 
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#00ff66';
-    ctx.lineWidth = 6;
-    ctx.shadowColor = '#00ff66';
-    ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.moveTo(trailPoints[0].x, trailPoints[0].y);
-    trailPoints.slice(1).forEach(point => ctx.lineTo(point.x, point.y));
-    ctx.stroke();
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    trailCtx.save();
+    trailCtx.lineCap = 'round';
+    trailCtx.lineJoin = 'round';
+    trailCtx.strokeStyle = '#00ff66';
+    trailCtx.lineWidth = 7;
+    trailCtx.shadowColor = '#00ff66';
+    trailCtx.shadowBlur = 16;
+    trailCtx.beginPath();
+    trailCtx.moveTo(trailPoints[0].x, trailPoints[0].y);
+    trailPoints.slice(1).forEach(point => trailCtx.lineTo(point.x, point.y));
+    trailCtx.stroke();
 
     trailPoints.forEach((point, index) => {
         if (index % 16 !== 0) return;
         drawStar(point.x, point.y, 7);
     });
-    ctx.restore();
+    trailCtx.restore();
 }
 
 function drawStar(x, y, radius) {
-    ctx.fillStyle = '#f5d300';
-    ctx.beginPath();
+    trailCtx.fillStyle = '#f5d300';
+    trailCtx.beginPath();
     for (let i = 0; i < 10; i++) {
         const angle = -Math.PI / 2 + i * Math.PI / 5;
         const pointRadius = i % 2 === 0 ? radius : radius * 0.42;
         const px = x + Math.cos(angle) * pointRadius;
         const py = y + Math.sin(angle) * pointRadius;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        i === 0 ? trailCtx.moveTo(px, py) : trailCtx.lineTo(px, py);
     }
-    ctx.closePath();
-    ctx.fill();
+    trailCtx.closePath();
+    trailCtx.fill();
 }
 
 function checkLostTags() {
@@ -184,6 +189,7 @@ function checkLostTags() {
 clearTrailButton.addEventListener('click', () => {
     trailPoints = [];
     tagTracker = {};
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
     tagDataEl.innerText = '✨ ¡Ruta limpia! Mueve el robot para comenzar.';
 });
 
