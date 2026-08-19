@@ -116,6 +116,8 @@ h1 {
 .controls {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
     margin: 22px 0;
 }
 
@@ -135,6 +137,19 @@ button {
 button:active {
     transform: translateY(6px);
     box-shadow: 0 0 12px rgba(255, 46, 147, .7);
+}
+
+.finish-button {
+    color: var(--bg-dark);
+    background: var(--neon-yellow);
+    box-shadow: 0 6px 0 #ad9400, 0 0 16px rgba(245, 211, 0, .6);
+}
+
+button:disabled {
+    filter: grayscale(.8);
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: 0 3px 0 #555;
 }
 
 #info-panel {

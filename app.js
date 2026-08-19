@@ -6,6 +6,7 @@ const trailCtx = trailCanvas.getContext('2d');
 const cameraDataEl = document.getElementById('camera-data');
 const tagDataEl = document.getElementById('tag-data');
 const clearTrailButton = document.getElementById('clear-trail');
+const finishTrailButton = document.getElementById('finish-trail');
 
 // Especificaciones solicitadas
 const TARGET_ID = 0;
@@ -19,11 +20,14 @@ let detectorReady = false;
 let apriltagDetector = null;
 let detectionInProgress = false;
 let trailPoints = [];
+let startPoint = null;
+let finishPoint = null;
+let missionComplete = false;
 
 // 1. INICIALIZAR EL DETECTOR WEBASSEMBLY EN UN WEB WORKER
 async function startDetector() {
     try {
-        const Apriltag = Comlink.wrap(new Worker("apriltag.js?v=20260819-2"));
+        const Apriltag = Comlink.wrap(new Worker("apriltag.js?v=20260819-3"));
         apriltagDetector = await new Apriltag(Comlink.proxy(() => {
             detectorReady = true;
             console.log("Motor AprilTag WASM cargado y listo.");
@@ -122,8 +126,11 @@ function handleDetections(tags) {
         if (tag.id === TARGET_ID) {
             tagTracker[TARGET_ID] = now;
             targetTag = tag;
-            addTrailPoint(tag.center.x, tag.center.y);
-            tagDataEl.innerText = `🟢 ¡Robot detectado!\nRuta: ${trailPoints.length} puntos\nCentro: x=${tag.center.x.toFixed(1)}, y=${tag.center.y.toFixed(1)}`;
+            if (!missionComplete) {
+                addTrailPoint(tag.center.x, tag.center.y);
+                finishTrailButton.disabled = trailPoints.length === 0;
+                tagDataEl.innerText = `🟢 ¡Robot en movimiento!\nRuta: ${trailPoints.length} puntos\nCuando llegue, presiona “Marcar meta”.`;
+            }
         }
     });
 
@@ -135,6 +142,7 @@ function addTrailPoint(x, y) {
     if (lastPoint && Math.hypot(x - lastPoint.x, y - lastPoint.y) < MIN_TRAIL_DISTANCE) return;
 
     trailPoints.push({ x, y });
+    if (!startPoint) startPoint = { x, y };
     if (trailPoints.length > MAX_TRAIL_POINTS) trailPoints.shift();
 }
 
@@ -159,6 +167,51 @@ function drawTrail() {
         drawStar(point.x, point.y, 7);
     });
     trailCtx.restore();
+    drawRouteMarker(startPoint, 'INICIO', '#08f7fe');
+    if (finishPoint) drawFinishFlag(finishPoint);
+}
+
+function drawRouteMarker(point, label, color) {
+    if (!point) return;
+    trailCtx.save();
+    trailCtx.fillStyle = color;
+    trailCtx.strokeStyle = '#1a1a2e';
+    trailCtx.lineWidth = 4;
+    trailCtx.shadowColor = color;
+    trailCtx.shadowBlur = 16;
+    trailCtx.beginPath();
+    trailCtx.arc(point.x, point.y, 13, 0, Math.PI * 2);
+    trailCtx.fill();
+    trailCtx.stroke();
+    trailCtx.shadowBlur = 0;
+    trailCtx.fillStyle = '#ffffff';
+    trailCtx.font = '900 18px Nunito, sans-serif';
+    trailCtx.strokeStyle = '#1a1a2e';
+    trailCtx.lineWidth = 5;
+    trailCtx.strokeText(label, point.x + 20, point.y - 14);
+    trailCtx.fillText(label, point.x + 20, point.y - 14);
+    trailCtx.restore();
+}
+
+function drawFinishFlag(point) {
+    trailCtx.save();
+    trailCtx.strokeStyle = '#ffffff';
+    trailCtx.lineWidth = 5;
+    trailCtx.shadowColor = '#ff2e93';
+    trailCtx.shadowBlur = 16;
+    trailCtx.beginPath();
+    trailCtx.moveTo(point.x, point.y + 18);
+    trailCtx.lineTo(point.x, point.y - 25);
+    trailCtx.stroke();
+    trailCtx.fillStyle = '#ff2e93';
+    trailCtx.beginPath();
+    trailCtx.moveTo(point.x, point.y - 25);
+    trailCtx.lineTo(point.x + 34, point.y - 15);
+    trailCtx.lineTo(point.x, point.y - 4);
+    trailCtx.closePath();
+    trailCtx.fill();
+    trailCtx.restore();
+    drawRouteMarker(point, 'META', '#ff2e93');
 }
 
 function drawStar(x, y, radius) {
@@ -189,8 +242,23 @@ function checkLostTags() {
 clearTrailButton.addEventListener('click', () => {
     trailPoints = [];
     tagTracker = {};
+    startPoint = null;
+    finishPoint = null;
+    missionComplete = false;
+    finishTrailButton.disabled = true;
     trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-    tagDataEl.innerText = '✨ ¡Ruta limpia! Mueve el robot para comenzar.';
+    tagDataEl.innerText = '✨ ¡Nueva misión! Mueve el robot para marcar el inicio.';
+});
+
+finishTrailButton.addEventListener('click', () => {
+    const lastPoint = trailPoints[trailPoints.length - 1];
+    if (!lastPoint || missionComplete) return;
+
+    finishPoint = { ...lastPoint };
+    missionComplete = true;
+    finishTrailButton.disabled = true;
+    drawTrail();
+    tagDataEl.innerText = `🏁 ¡Misión completada!\nRecorrido terminado con ${trailPoints.length} puntos.\nPresiona “Nueva misión” para repetir.`;
 });
 
 function drawTag(tag) {
