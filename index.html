@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AprilTag 36h11 Detector</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <video id="camera-stream" autoplay playsinline muted></video>
+        <canvas id="output-canvas"></canvas>
+    </div>
+    
+    <div id="info-panel">
+        <h3>Datos de la Cámara</h3>
+        <pre id="camera-data">Cargando...</pre>
+        <h3>Tags Detectados (ID: 0)</h3>
+        <pre id="tag-data">Buscando...</pre>
+    </div>
+
+    <script src="https://unpkg.com/apriltag@1.1.1/apriltag.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

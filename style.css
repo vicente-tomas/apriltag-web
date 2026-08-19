@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #222;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    position: relative;
+    display: inline-block;
+}
+
+#camera-stream {
+    display: none; /* Ocultamos el video crudo, mostraremos el canvas */
+}
+
+#output-canvas {
+    background-color: #000;
+    max-width: 100%;
+    border: 2px solid #555;
+    border-radius: 8px;
+}
+
+#info-panel {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 640px;
+    background: #333;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+pre {
+    background: #111;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
