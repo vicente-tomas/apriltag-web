@@ -1,11 +1,10 @@
 :root {
-    --bg-dark: #1a1a2e;
-    --bg-panel: #16213e;
-    --neon-cyan: #08f7fe;
-    --neon-pink: #ff2e93;
-    --neon-yellow: #f5d300;
-    --neon-green: #00ff66;
-    --text-soft: #dce8ff;
+    /* Tu nueva paleta de colores */
+    --azul-fondo: #142b4d; 
+    --celeste-principal: #579c9f; 
+    --celeste-clarito: #bae0d5; 
+    --bg-panel: rgba(20, 43, 77, 0.9);
+    --text-soft: #bae0d5;
 }
 
 * { box-sizing: border-box; }
@@ -15,15 +14,29 @@ body {
     margin: 0;
     min-height: 100vh;
     padding: 18px;
-    background-color: var(--bg-dark);
-    background-image: radial-gradient(circle, #253058 2px, transparent 2px);
+    background-color: var(--azul-fondo);
+    /* Fondo con puntos usando tu celeste clarito */
+    background-image: radial-gradient(circle, rgba(186, 224, 213, 0.2) 2px, transparent 2px);
     background-size: 22px 22px;
     color: white;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
 }
 
 main {
     width: min(100%, 760px);
     margin: 0 auto;
+    flex: 1;
+    z-index: 2;
+}
+
+/* --- LOGO NUEVO --- */
+.logo-principal {
+    width: 220px;
+    margin: 10px auto 15px auto;
+    display: inline-block;
 }
 
 .hero { text-align: center; }
@@ -31,29 +44,28 @@ main {
 .mission-badge {
     display: inline-block;
     padding: 6px 14px;
-    color: var(--bg-dark);
-    background: var(--neon-yellow);
+    color: var(--azul-fondo);
+    background: var(--celeste-clarito);
     border-radius: 999px;
     font-weight: 900;
     letter-spacing: .12em;
-    box-shadow: 0 0 14px rgba(245, 211, 0, .55);
+    box-shadow: 0 0 14px rgba(186, 224, 213, .55);
 }
 
 h1 {
     margin: 12px 0 2px;
-    color: var(--neon-cyan);
+    color: var(--celeste-principal);
     font-size: clamp(1.8rem, 7vw, 2.8rem);
     font-weight: 900;
     text-transform: uppercase;
-    text-shadow: 0 0 16px rgba(8, 247, 254, .8);
+    text-shadow: 0 0 16px rgba(87, 156, 159, .8);
 }
 
 .hero p {
     margin: 0 0 18px;
-    color: var(--neon-pink);
+    color: var(--celeste-clarito);
     font-size: clamp(1rem, 4vw, 1.2rem);
     font-weight: 900;
-    text-shadow: 0 0 8px rgba(255, 46, 147, .6);
 }
 
 .camera-card {
@@ -62,14 +74,12 @@ h1 {
     width: 100%;
     min-height: 220px;
     background: #000;
-    border: 4px solid var(--neon-cyan);
+    border: 4px solid var(--celeste-principal);
     border-radius: 22px;
-    box-shadow: 0 0 28px rgba(8, 247, 254, .45);
+    box-shadow: 0 0 28px rgba(87, 156, 159, .45);
 }
 
-#camera-stream {
-    display: none;
-}
+#camera-stream { display: none; }
 
 #output-canvas {
     display: block;
@@ -94,23 +104,24 @@ h1 {
     left: 14px;
     padding: 7px 11px;
     border-radius: 999px;
-    background: rgba(10, 13, 31, .78);
+    background: rgba(20, 43, 77, .85);
     backdrop-filter: blur(5px);
     font-weight: 900;
+    color: var(--celeste-clarito);
 }
 
 .camera-status { top: 12px; font-size: .78rem; }
-.camera-hint { bottom: 12px; color: var(--text-soft); font-size: .82rem; }
-.camera-hint strong { color: var(--neon-yellow); }
+.camera-hint { bottom: 12px; font-size: .82rem; }
+.camera-hint strong { color: var(--celeste-principal); }
 
 .status-light {
     display: inline-block;
     width: 9px;
     height: 9px;
     margin-right: 5px;
-    background: var(--neon-green);
+    background: var(--celeste-principal);
     border-radius: 50%;
-    box-shadow: 0 0 9px var(--neon-green);
+    box-shadow: 0 0 9px var(--celeste-principal);
 }
 
 .controls {
@@ -125,9 +136,9 @@ button {
     padding: 14px 24px;
     border: 0;
     border-radius: 999px;
-    color: white;
-    background: var(--neon-pink);
-    box-shadow: 0 6px 0 #b81767, 0 0 16px rgba(255, 46, 147, .6);
+    color: var(--azul-fondo);
+    background: var(--celeste-principal);
+    box-shadow: 0 6px 0 #3a6d6f, 0 0 16px rgba(87, 156, 159, .6);
     font: 900 1rem 'Nunito', sans-serif;
     text-transform: uppercase;
     cursor: pointer;
@@ -136,7 +147,7 @@ button {
 
 button:active {
     transform: translateY(6px);
-    box-shadow: 0 0 12px rgba(255, 46, 147, .7);
+    box-shadow: 0 0 12px rgba(87, 156, 159, .7);
 }
 
 .mission-modal {
@@ -146,7 +157,7 @@ button:active {
     display: grid;
     place-items: center;
     padding: 20px;
-    background: rgba(10, 10, 28, .82);
+    background: rgba(20, 43, 77, .82);
     backdrop-filter: blur(8px);
 }
 
@@ -156,18 +167,18 @@ button:active {
     width: min(100%, 470px);
     padding: 34px 22px;
     text-align: center;
-    background: var(--bg-panel);
-    border: 4px solid var(--neon-yellow);
+    background: var(--azul-fondo);
+    border: 4px solid var(--celeste-principal);
     border-radius: 24px;
-    box-shadow: 0 0 42px rgba(245, 211, 0, .65);
+    box-shadow: 0 0 42px rgba(87, 156, 159, .65);
     animation: mission-pop .45s cubic-bezier(.2, 1.4, .5, 1);
 }
 
 .mission-modal-card h2 {
     margin: 12px 0 6px;
-    color: var(--neon-yellow);
+    color: var(--celeste-principal);
     font-size: clamp(1.8rem, 7vw, 2.6rem);
-    text-shadow: 0 0 16px rgba(245, 211, 0, .7);
+    text-shadow: 0 0 16px rgba(87, 156, 159, .7);
 }
 
 .mission-modal-card p { margin: 0 0 24px; font-size: 1.15rem; font-weight: 900; }
@@ -182,21 +193,22 @@ button:active {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+    margin-bottom: 40px;
 }
 
 .info-card {
     min-width: 0;
     padding: 16px;
-    background: rgba(22, 33, 62, .94);
-    border: 2px solid #34446f;
+    background: var(--bg-panel);
+    border: 2px solid var(--celeste-principal);
     border-radius: 16px;
 }
 
-.tag-card { border-color: var(--neon-green); box-shadow: 0 0 14px rgba(0, 255, 102, .18); }
+.tag-card { box-shadow: 0 0 14px rgba(87, 156, 159, .18); }
 
 h2 {
     margin: 0 0 8px;
-    color: var(--neon-cyan);
+    color: var(--celeste-principal);
     font-size: 1rem;
     text-transform: uppercase;
 }
@@ -209,8 +221,43 @@ pre {
     overflow-x: auto;
 }
 
+/* --- ROBOT DECORATIVO --- */
+.robot-decorativo {
+    position: fixed;
+    bottom: 140px;
+    right: 20px;
+    width: 180px;
+    z-index: 10;
+    pointer-events: none;
+    animation: flotar 3s ease-in-out infinite;
+}
+
+@keyframes flotar {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(3deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* --- FOOTER LOGOS --- */
+.footer-logos {
+    background-color: var(--celeste-clarito);
+    text-align: center;
+    padding: 15px;
+    margin-top: auto;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+    z-index: 15;
+    position: relative;
+}
+
+.footer-logos img {
+    max-width: 90%;
+    height: auto;
+}
+
 @media (max-width: 620px) {
-    body { padding: 12px; }
+    body { padding: 12px; padding-bottom: 0; }
     #info-panel { grid-template-columns: 1fr; }
     .camera-data-card { display: none; }
+    .robot-decorativo { width: 120px; bottom: 120px; }
 }
